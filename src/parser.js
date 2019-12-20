@@ -4,7 +4,7 @@
 
 // ruleList ::= rule ruleList | e
 
-// rule ::=  var | style
+// rule ::=  var | @ rule | style
 
 // var ::= $ id : idList ;
 
@@ -55,17 +55,57 @@ class Parser {
     }
 
     rule() {
+        switch (this.lookahead.name) {
+            case "at":
+                return this.at();
+            case "cash":
+                return this.var();
+            case "id":
+                return this.style();
+            default:
+                throw new Error(`Line ${this.lookahead.line}: Column ${this.lookahead.column}: `
+                                + `Expected one of @, $, or ID`);
+                break;
+        }
         return this.style();
     }
 
+    at() {
+        this.match("at");
+        let id = this.lookahead.value;
+        this.match("id");
+        let v = this.any();
+        this.match("semicolon");
+        return {
+            name: "at",
+            id,
+            value: v
+        }
+    }
+
+    var() {
+        this.match("cash");
+        let id = this.lookahead.value;
+        this.match("id");
+        this.match("colon");
+        let value = this.any();
+        this.match("semicolon");
+        return {
+            name: "var",
+            id,
+            value
+        }
+
+    }
+
     style(){
-        let ids = this.idList();
+        let id = this.idList();
         this.match("lbrace");
         let decls = this.declarationList();
         this.match("rbrace");
         return {
             name: "style",
-            ids,
+            id,
             decls
         }
 
@@ -110,18 +150,20 @@ class Parser {
     }
 
     any(){
-        let t = this.term();
-        if(t){
-            if(this.lookahead == "comma"){
-                match("comma");
-                return [t, "comma"].concat(this.any());
-            }else{
-                return [t].concat(this.any());
-            }
+
+        let valid = ["id", "num", "lparen", "rparen", "quote", "squote", "comma", "hyphen"]
+
+        if(valid.indexOf(this.lookahead.name) != -1){
+            
+            let v = this.lookahead.value;
+
+            this.match(this.lookahead.name);
+            
+            return [v].concat(this.any());
         }else{
             return [];
         }
-        
+
     }
 
     term() {

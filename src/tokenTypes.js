@@ -8,8 +8,23 @@ let types = {
     comma: {
         regex: /^\,/
     },
+    at: {
+        regex: /^\@/
+    },
+    cash: {
+        regex: /^\$/
+    },
+    quote: {
+        regex: /^\"/
+    },
+    squote: {
+        regex: /^\'/
+    },
+    hyphen: {
+        regex: /^\-/
+    },
     id: {
-        regex: /^-?[_a-zA-Z]+[_a-zA-Z0-9-]*/
+        regex: /^[\#\.]?-?[_a-zA-Z]+[_a-zA-Z0-9-]*/
     },
     num: {
         regex: /^[0-9]+(px|\%)?/

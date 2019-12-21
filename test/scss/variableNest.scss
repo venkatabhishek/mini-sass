@@ -1,0 +1,6 @@
+$one: 3px;
+$two: $one;
+
+div{
+    width: $two;
+}

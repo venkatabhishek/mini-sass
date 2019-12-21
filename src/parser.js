@@ -74,7 +74,7 @@ class Parser {
         this.match("at");
         let id = this.lookahead.value;
         this.match("id");
-        let v = this.any();
+        let v = this.joinVars(this.any());
         this.match("semicolon");
         return {
             name: "at",
@@ -88,7 +88,7 @@ class Parser {
         let id = this.lookahead.value;
         this.match("id");
         this.match("colon");
-        let value = this.any();
+        let value = this.joinVars(this.any());
         this.match("semicolon");
         return {
             name: "var",
@@ -124,7 +124,7 @@ class Parser {
         let id = this.lookahead.value;
         this.match("id");
         this.match("colon");
-        let vlist = this.any();
+        let vlist = this.joinVars(this.any());
         this.match("semicolon");
         return {
             name: id,
@@ -151,15 +151,23 @@ class Parser {
 
     any(){
 
-        let valid = ["id", "num", "lparen", "rparen", "quote", "squote", "comma", "hyphen"]
+        let valid = ["id", "num", "lparen", "rparen", "quote", "squote", "comma", "hyphen", "cash"]
 
         if(valid.indexOf(this.lookahead.name) != -1){
             
-            let v = this.lookahead.value;
+            let v = this.lookahead;
 
             this.match(this.lookahead.name);
+
+            let rest = this.any();
+
+            // checks
+
+            if(v.name == "cash" && rest.length == 0){
+                throw new Error(`Expected Identifier ${v.line}:${v.column}`)
+            }
             
-            return [v].concat(this.any());
+            return [v.value].concat(rest);
         }else{
             return [];
         }
@@ -178,6 +186,21 @@ class Parser {
         }else{
             return null;
         }
+    }
+
+    // join ['$', 'varname'] => ['$varname']
+    joinVars(lst){
+        let ret = [];
+        for(let i = 0; i < lst.length; i++){
+            if(lst[i] == "$"){
+                ret.push("$"+lst[i+1]);
+                i+=1;
+            }else{
+                ret.push(lst[i]);
+            }
+        }
+
+        return ret;
     }
 
 

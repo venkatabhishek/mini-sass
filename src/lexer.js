@@ -24,12 +24,20 @@ class Lexer {
 
             let current = this.buf.substring(this.pos);
 
-            //newline
+            // newline
             let newline = current.match(/^(\r\n|\r|\n)/);
             if(newline){
                 this.line++;
                 this.column = 0;
                 this.pos+=newline[0].length;
+                current = this.buf.substring(this.pos);
+            }
+
+            // whitespace - change to ws-token in future
+            let whitespace = current.match(/^( )+/)
+            if(whitespace){
+                this.column += whitespace[0].length;
+                this.pos +=whitespace[0].length;
                 current = this.buf.substring(this.pos);
             }
 

@@ -1,2 +1,7 @@
-div { width: 20px; height: 40px; }
-ul { height: 30%; } 
+$w: 2px;
+$width: $w;
+
+div {
+    width: $width;
+    height: 40px;
+}

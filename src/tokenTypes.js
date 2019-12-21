@@ -24,7 +24,7 @@ let types = {
         regex: /^\-/
     },
     id: {
-        regex: /^[\#\.]?-?[_a-zA-Z]+[_a-zA-Z0-9-]*/
+        regex: /^[\#\.-]?[_\.\#a-zA-Z]+[_a-zA-Z0-9-]*/
     },
     num: {
         regex: /^[0-9]+(px|\%)?/

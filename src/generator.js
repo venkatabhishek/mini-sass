@@ -2,7 +2,7 @@ class Generator {
 
     constructor(ast) {
         this.ast = ast;
-        this.vars = [];
+        this.vars = {};
     }
 
     generateString() {
@@ -15,7 +15,7 @@ class Generator {
 
                 switch (name) {
                     case "var":
-                        return this.generateVar();
+                        return this.generateVar(rule);
                         break;
                     case "style":
                         return this.generateStyle(rule, level);
@@ -27,7 +27,7 @@ class Generator {
                         break;
                 }
 
-            })(rule.name)+"\n";
+            })(rule.name);
 
         })
 
@@ -39,18 +39,42 @@ class Generator {
         let nestedIndent = this.indent(level+1);
         let selector = rule.id.join(" ");
         let decls = rule.decls.reduce((s, decl) => (
-            s + `${nestedIndent}${decl.name}: ${decl.value.join(" ")};\n` 
+            s + `${nestedIndent}${decl.name}: ${this.replaceVars(decl.value)};\n` 
         ), "")
 
         return `${indent}${selector} {\n` +
             `${decls}` +
-        `${indent}}\n`
+        `${indent}}\n\n`
 
     }
 
     generateAtRule(){}
 
-    generateVar(){}
+    generateVar(rule){
+        this.vars[rule.id] = this.replaceVars(rule.value);
+        return "";
+    }
+
+    // replace vars with value in declaration
+    replaceVars(lst){
+        return lst.map((d) => {
+            if(d.startsWith("$")){
+
+                let id = d.substring(1);
+
+                if(id in this.vars){
+                    return this.vars[id];
+                }else{
+                    throw new Error(`Variable "${id}" undefined`)
+                }
+
+
+
+            }else{
+                return d;
+            }
+        }).join(" ");
+    }
 
     generateFile(filename) {
         

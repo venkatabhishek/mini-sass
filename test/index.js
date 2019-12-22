@@ -1,8 +1,11 @@
 const css = require('css');
 const fs = require('fs');
+const util = require('util');
+
 import Lexer from '../src/lexer';
 import Parser from '../src/parser';
 import Generator from '../src/generator';
+
 import { expect, assert } from "chai"
 
 const testDir = "test/"
@@ -37,31 +40,56 @@ describe("Parser", () => {
         it("parses a single style declaration", () => {
             let d = new Lexer("width: 100%;");
             let p = new Parser(d);
-            expect(p.declaration()).to.eql({
-                name: "width",
+            expect(p.innerRule()).to.eql({
+                name: "decl",
+                id: ["width"],
                 value: ["100%"]
             });
         })
     })
 
-    describe("#style()", () => {
-        it("parses a style: selector + series of declarations", () => {
-            let d = new Lexer("div { width: 100%; height: 90%; }");
+    describe("#ast()", () => {
+        it("parses ast", () => {
+            let d = new Lexer("div { width: 24%; height: 90%; }");
             let p = new Parser(d);
-            expect(p.style()).to.eql({
+            expect(p.ast()).to.eql([{
                 name: "style",
                 id: ["div"],
                 decls: [
                     {
-                        name: "width",
-                        value: ["100%"]
+                        name: "decl",
+                        id: ["width"],
+                        value: ["24%"]
                     },
                     {
-                        name: "height",
+                        name: "decl",
+                        id: ["height"],
                         value: ["90%"]
                     }
                 ]
-            })
+            }])
+        })
+
+        it("parses nested styles", () => {
+            let d = new Lexer(".one { .two { width: 3px; } }");
+            let p = new Parser(d);
+            expect(p.ast()).to.eql([{
+                name: "style",
+                id: [".one"],
+                decls: [
+                    {
+                        name: "style",
+                        id: [".two"],
+                        decls: [
+                            {
+                                name: "decl",
+                                id: ["width"],
+                                value: ["3px"]
+                            }
+                        ]
+                    }
+                ]
+            }])
         })
     })
 
@@ -85,12 +113,22 @@ describe("Generator", () => {
         })
 
         it("Replaces variables within variables", () => {
-            compareCSS("variableNest");
+            compareCSS("nestedVariable");
+        })
+    })
+
+    describe("Feature: Nested Styles", () => {
+        it("Replaces nested styles", () => {
+            compareCSS("nestedStyles");
+        })
+
+        it("Replaces nested styles and declarations", () => {
+            compareCSS("nestedStylesDeclarations")
         })
     })
 })
 
-let compareCSS = function(filename){
+let compareCSS = function (filename) {
     let f = fs.readFileSync(`${testDir}/scss/${filename}.scss`).toString();
     let l = new Lexer(f);
     let p = new Parser(l);

@@ -6,11 +6,13 @@
 
 // rule ::=  var | @ rule | style
 
-// var ::= $ id : idList ;
+// var ::= $ id : any ;
 
-// style ::= id+  { declarationList }
+// style ::= id+  { styleList }
 
-// declarationList ::= declaration declarationList | e
+// styleList ::= innerRule styleList | e
+
+// innerRule ::= var | @ rule | style | declaration
 
 // declaration ::= id : any
 
@@ -46,12 +48,13 @@ class Parser {
     }
 
     ruleList() {
-        let r = this.rule();
         if(this.lookahead){
-            let rl = this.ruleList();
-            return [r].concat(rl);
+            let r = this.rule();
+            return [r].concat(this.ruleList());
+        }else{
+            return [];
         }
-        return [r];
+        
     }
 
     rule() {
@@ -61,7 +64,8 @@ class Parser {
             case "cash":
                 return this.var();
             case "id":
-                return this.style();
+                let id = this.idList();
+                return this.style(id);
             default:
                 throw new Error(`Line ${this.lookahead.line}: Column ${this.lookahead.column}: `
                                 + `Expected one of @, $, or ID`);
@@ -98,10 +102,9 @@ class Parser {
 
     }
 
-    style(){
-        let id = this.idList();
+    style(id){
         this.match("lbrace");
-        let decls = this.declarationList();
+        let decls = this.styleList();
         this.match("rbrace");
         return {
             name: "style",
@@ -111,24 +114,47 @@ class Parser {
 
     }
 
-    declarationList(){
-        if(this.lookahead.name == "id"){
-            let decl = this.declaration();
-            return [decl].concat(this.declarationList());
-        }else{
+    styleList() {
+        if(this.lookahead.name == "rbrace"){
             return [];
+        }else{
+            let inner = this.innerRule();
+            return [inner].concat(this.styleList());
         }
     }
 
-    declaration(){
-        let id = this.lookahead.value;
-        this.match("id");
+    innerRule() {
+        switch (this.lookahead.name) {
+            case "at":
+                return this.at();
+            case "cash":
+                return this.var();
+            case "id":
+                // style or declaration
+                let id = this.idList();
+                if(this.lookahead.name == "colon"){
+                    return this.declaration(id);
+                }else if(this.lookahead.name == "lbrace"){
+                    return this.style(id);
+                }else{
+                    throw new Error(`Line ${this.lookahead.line}: Column ${this.lookahead.column}: `
+                                + `Expected one of : or {`);
+                }
+            default:
+                throw new Error(`Line ${this.lookahead.line}: Column ${this.lookahead.column}: `
+                                + `Expected one of @, $, or ID`);
+        }
+    }
+
+
+    declaration(id){
         this.match("colon");
-        let vlist = this.joinVars(this.any());
+        let value = this.joinVars(this.any());
         this.match("semicolon");
         return {
-            name: id,
-            value: vlist
+            name: "decl",
+            id,
+            value
         }
     }
 

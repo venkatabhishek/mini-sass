@@ -38,14 +38,36 @@ class Generator {
         let indent = this.indent(level);
         let nestedIndent = this.indent(level+1);
         let selector = rule.id.join(" ");
-        let decls = rule.decls.reduce((s, decl) => (
-            s + `${nestedIndent}${decl.name}: ${this.replaceVars(decl.value)};\n` 
+
+        let decls = rule.decls.filter(d => d.name == "decl");
+        let declsStr = decls.reduce((s, d) => (
+            s + `${nestedIndent}${d.id}: ${this.replaceVars(d.value)};\n`
         ), "")
 
-        return `${indent}${selector} {\n` +
-            `${decls}` +
-        `${indent}}\n\n`
+        let nested = rule.decls.filter(d => d.name == "style");
+        let nestedStr = nested.reduce((s, n) => {
+            n.id.unshift(selector);
+            return s + this.generateStyle(n, level);
+        }, "")
+        
+        let ret = "";
 
+        if(decls.length != 0){
+            ret += `${indent}${selector} {\n` +
+            `${declsStr}` +
+            `${indent}}\n\n`
+        }
+
+        if(nested.length != 0){
+            ret += nestedStr;
+        }
+
+        return ret;
+
+    }
+
+    generateDeclaration(){
+        
     }
 
     generateAtRule(){}

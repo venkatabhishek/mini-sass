@@ -71,7 +71,7 @@ let lexFull = function(l){
     }
 }
 
-let str = fs.readFileSync("test/scss/basicVariable.scss").toString();
+let str = fs.readFileSync("test/scss/nestedStyles.scss").toString();
 let lex = new Lexer(str);
 // lexFull(lex);
 let p = new Parser(lex);
@@ -80,12 +80,12 @@ let g = new Generator(p.ast());
 // console.log(JSON.stringify(g.generateString()));
 // let ast = css.parse(g.generateString());
 // console.log(css.stringify(ast));
-// fs.writeFile('test/output.css', g.generateString(), function (err) {
-//     if (err) throw err;
-//     console.log('Saved!');
-//   });
-let actual = "test/css/basicVariable.css";
-let actualF = fs.readFileSync(actual).toString();
-let actualAST = css.parse(actual);
-let actualS = css.stringify(actualAST);
-console.log(actual);
+fs.writeFile('temp/output.css', g.generateString(), function (err) {
+    if (err) throw err;
+    console.log('Saved!');
+  });
+// let actual = "test/css/basicVariable.css";
+// let actualF = fs.readFileSync(actual).toString();
+// let actualAST = css.parse(actual);
+// let actualS = css.stringify(actualAST);
+// console.log(actual);

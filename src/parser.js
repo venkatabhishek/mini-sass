@@ -14,14 +14,14 @@
 
 // innerRule ::= var | @ rule | style | declaration
 
-// declaration ::= id : any
+// declaration ::= id : any ;
 
 // idList ::= id (,|\s) idList | e
 // example: id1, id2 id3
 
-// any ::= term any | e 
+// any ::= valid any | e 
 
-// term ::= id | num
+// valid ::= id | num | lparen | rparen | quote | squote | comma | hyphen | cash
 
 class Parser {
     constructor(lexer) {
@@ -200,20 +200,6 @@ class Parser {
 
     }
 
-    term() {
-        if(this.lookahead.name == "id" || this.lookahead.name == "num"){
-            let v = {
-                type: this.lookahead.name,
-                value: this.lookahead.value
-            }
-
-            this.match(this.lookahead.name);
-            return v;
-        }else{
-            return null;
-        }
-    }
-
     // join ['$', 'varname'] => ['$varname']
     joinVars(lst){
         let ret = [];
@@ -228,8 +214,6 @@ class Parser {
 
         return ret;
     }
-
-
 
 }
 

@@ -70,6 +70,16 @@ describe("Parser", () => {
             }])
         })
 
+        it("parses @ rules", () => {
+            let d = new Lexer(`@import "test.css";`);
+            let p = new Parser(d);
+            expect(p.ast()).to.eql([{
+                name: "at",
+                id: "import",
+                value: ['"', "test.css", '"']
+            }])
+        })
+
         it("parses nested styles", () => {
             let d = new Lexer(".one { .two { width: 3px; } }");
             let p = new Parser(d);

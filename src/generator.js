@@ -7,7 +7,6 @@ class Generator {
 
     generateString() {
         let output = "";
-        let level = 0;
 
         this.ast.forEach(rule => {
 
@@ -18,10 +17,10 @@ class Generator {
                         return this.generateVar(rule);
                         break;
                     case "style":
-                        return this.generateStyle(rule, level);
+                        return this.generateStyle(rule);
                         break;
                     case "at":
-                        return this.generateAtRule();
+                        return this.generateAtRule(rule);
                         break;
                     default:
                         break;
@@ -34,20 +33,21 @@ class Generator {
         return output;
     }
 
-    generateStyle(rule, level){
-        let indent = this.indent(level);
-        let nestedIndent = this.indent(level+1);
+    generateStyle(rule,){
+        let indent = this.indent();
         let selector = rule.id.join(" ");
 
+        // generate declarations
         let decls = rule.decls.filter(d => d.name == "decl");
         let declsStr = decls.reduce((s, d) => (
-            s + `${nestedIndent}${d.id}: ${this.replaceVars(d.value)};\n`
+            s + `${indent+indent}${d.id}: ${this.replaceVars(d.value)};\n`
         ), "")
 
+        // generate nested styles
         let nested = rule.decls.filter(d => d.name == "style");
         let nestedStr = nested.reduce((s, n) => {
             n.id.unshift(selector);
-            return s + this.generateStyle(n, level);
+            return s + this.generateStyle(n);
         }, "")
         
         let ret = "";
@@ -66,11 +66,9 @@ class Generator {
 
     }
 
-    generateDeclaration(){
-        
-    }
+    generateAtRule(rule){
 
-    generateAtRule(){}
+    }
 
     generateVar(rule){
         this.vars[rule.id] = this.replaceVars(rule.value);
@@ -102,8 +100,8 @@ class Generator {
         
     }
 
-    indent(level){
-        return " ".repeat(4).repeat(level);
+    indent(){
+        return " ".repeat(4);
     }
 
 

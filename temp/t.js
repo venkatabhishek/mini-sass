@@ -71,7 +71,7 @@ let lexFull = function(l){
     }
 }
 
-let str = fs.readFileSync("test/scss/nestedStyles.scss").toString();
+let str = fs.readFileSync("test/scss/mixin.scss").toString();
 let lex = new Lexer(str);
 // lexFull(lex);
 let p = new Parser(lex);

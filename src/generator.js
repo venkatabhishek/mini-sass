@@ -2,11 +2,11 @@ class Generator {
 
     constructor(ast) {
         this.ast = ast;
-        this.vars = {};
     }
 
     generateString() {
         let output = "";
+        let env = {};
 
         this.ast.forEach(rule => {
 
@@ -14,14 +14,12 @@ class Generator {
 
                 switch (name) {
                     case "var":
-                        return this.generateVar(rule);
-                        break;
+                        env = this.generateVar(r, env);
+                        return "";
                     case "style":
-                        return this.generateStyle(rule);
-                        break;
+                        return this.generateStyle(rule, env);
                     case "at":
                         return this.generateAtRule(rule);
-                        break;
                     default:
                         break;
                 }
@@ -33,32 +31,43 @@ class Generator {
         return output;
     }
 
-    generateStyle(rule,){
+    generateStyle(rule, env){
         let indent = this.indent();
+        let currentEnv = {...env};
         let selector = rule.id.join(" ");
-
-        // generate declarations
-        let decls = rule.decls.filter(d => d.name == "decl");
-        let declsStr = decls.reduce((s, d) => (
-            s + `${indent+indent}${d.id}: ${this.replaceVars(d.value)};\n`
-        ), "")
-
-        // generate nested styles
-        let nested = rule.decls.filter(d => d.name == "style");
-        let nestedStr = nested.reduce((s, n) => {
-            n.id.unshift(selector);
-            return s + this.generateStyle(n);
-        }, "")
         
+        let currentStr = "";
+        let nestedStr = "";
+
+        rule.decls.forEach(r => {
+            switch(r.name){
+                case "var":
+                    currentEnv = this.generateVar(r, currentEnv);
+                    break;
+                case "decl":
+                    currentStr += this.generateDeclaration(r, currentEnv);
+                    break;
+                case "at":
+                    currentStr += this.generateAtRule(r);
+                    break;
+                case "style":
+                    r.id.unshift(selector);
+                    nestedStr += this.generateStyle(r, currentEnv);
+                    break;
+                default:
+                    break;
+            }
+        })
+
         let ret = "";
 
-        if(decls.length != 0){
-            ret += `${indent}${selector} {\n` +
-            `${declsStr}` +
-            `${indent}}\n\n`
+        if(currentStr.length != 0){
+            ret += `${selector} {` +
+            `${currentStr}` +
+            `\n}\n\n`
         }
 
-        if(nested.length != 0){
+        if(nestedStr.length != 0){
             ret += nestedStr;
         }
 
@@ -66,29 +75,31 @@ class Generator {
 
     }
 
-    generateAtRule(rule){
-
+    generateDeclaration(rule, env) {
+        return `\n${this.indent()}${rule.id}: ${this.replaceVars(rule.value, env)};`
     }
 
-    generateVar(rule){
-        this.vars[rule.id] = this.replaceVars(rule.value);
-        return "";
+    generateAtRule(rule){
+        return `\n${this.indent()}@${rule.id} ${rule.value.join("")};`
+    }
+
+    generateVar(rule, env){
+        env[rule.id] = this.replaceVars(rule.value, env);
+        return env;
     }
 
     // replace vars with value in declaration
-    replaceVars(lst){
+    replaceVars(lst, env){
         return lst.map((d) => {
             if(d.startsWith("$")){
 
                 let id = d.substring(1);
 
-                if(id in this.vars){
-                    return this.vars[id];
+                if(id in env){
+                    return env[id];
                 }else{
                     throw new Error(`Variable "${id}" undefined`)
                 }
-
-
 
             }else{
                 return d;

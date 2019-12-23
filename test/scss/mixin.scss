@@ -1,0 +1,18 @@
+
+
+.two {
+    
+    $v: 20px;
+    
+    .one{
+        
+        width: $v;
+    }
+
+    .three{
+        height: $v;
+    }
+
+    @import "test.css";
+
+}

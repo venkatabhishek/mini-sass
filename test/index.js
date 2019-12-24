@@ -75,8 +75,9 @@ describe("Parser", () => {
             let p = new Parser(d);
             expect(p.ast()).to.eql([{
                 name: "at",
+                type: "inline",
                 id: "import",
-                value: ['"', "test.css", '"']
+                value: ['"test.css"']
             }])
         })
 
@@ -133,7 +134,13 @@ describe("Generator", () => {
         })
 
         it("Replaces nested styles and declarations", () => {
-            compareCSS("nestedStylesDeclarations")
+            compareCSS("nestedStylesDeclarations");
+        })
+    })
+
+    describe("Feature: Mixins", () => {
+        it("Replaces without args", () => {
+            compareCSS("mixin");
         })
     })
 })

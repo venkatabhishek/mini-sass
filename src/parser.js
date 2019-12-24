@@ -71,20 +71,38 @@ class Parser {
                                 + `Expected one of @, $, or ID`);
                 break;
         }
-        return this.style();
     }
 
+    // MODIFY: CHECK FOR COLON - generic at rule - OR BRACE/PAREN - mixin/function
     at() {
         this.match("at");
         let id = this.lookahead.value;
         this.match("id");
         let v = this.joinVars(this.any());
-        this.match("semicolon");
-        return {
-            name: "at",
-            id,
-            value: v
+        let type = this.lookahead.name;
+        if(type == "semicolon"){
+            this.match("semicolon");
+
+            return {
+                name: "at",
+                type: "inline",
+                id,
+                value: v
+            }
+        }else if(type == "lbrace"){
+            this.match("lbrace");
+            let body = this.styleList();
+            this.match("rbrace");
+
+            return {
+                name: "at",
+                type: "block",
+                id,
+                idx: v,
+                body 
+            }
         }
+        
     }
 
     var() {
@@ -177,7 +195,7 @@ class Parser {
 
     any(){
 
-        let valid = ["id", "num", "lparen", "rparen", "quote", "squote", "comma", "hyphen", "cash"]
+        let valid = ["id", "num", "paren", "quote", "squote", "comma", "hyphen", "cash"]
 
         if(valid.indexOf(this.lookahead.name) != -1){
             

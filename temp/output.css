@@ -1,12 +1,12 @@
-.two {
-    @import "test.css";
+nav ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
 }
 
-.two .one {
-    width: 20px;
-}
-
-.two .three {
-    height: 20px;
+nav ul li {
+    display: inline-block;
+    margin-left: - 2px;
+    margin-right: 2em;
 }
 

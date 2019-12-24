@@ -7,6 +7,7 @@ class Generator {
     generateString() {
         let output = "";
         let env = {};
+        let mixins = {};
 
         this.ast.forEach(rule => {
 
@@ -14,12 +15,14 @@ class Generator {
 
                 switch (name) {
                     case "var":
-                        env = this.generateVar(r, env);
+                        env = this.generateVar(rule, env);
                         return "";
                     case "style":
-                        return this.generateStyle(rule, env);
+                        return this.generateStyle(rule, env, mixins);
                     case "at":
-                        return this.generateAtRule(rule);
+                        let ret = this.generateAtRule(rule, env, mixins);
+                        mixins = ret[1];
+                        return ret[0];
                     default:
                         break;
                 }
@@ -31,15 +34,20 @@ class Generator {
         return output;
     }
 
-    generateStyle(rule, env){
+    generateStyle(rule, env, mixins){
         let indent = this.indent();
         let currentEnv = {...env};
+        let currentMixins = {...mixins};
+        let currentDecls = [...rule.decls];
+
         let selector = rule.id.join(" ");
         
         let currentStr = "";
         let nestedStr = "";
 
-        rule.decls.forEach(r => {
+
+        for(let i = 0; i < currentDecls.length;i++){
+            let r = currentDecls[i];
             switch(r.name){
                 case "var":
                     currentEnv = this.generateVar(r, currentEnv);
@@ -48,16 +56,25 @@ class Generator {
                     currentStr += this.generateDeclaration(r, currentEnv);
                     break;
                 case "at":
-                    currentStr += this.generateAtRule(r);
+                    // include
+                    if(r.id == "include"){
+                        let body = this.replaceMixins(r.value[0], currentMixins);
+                        currentDecls.splice(i+1, 0, ...body);
+                    }else{
+                        let ret = this.generateAtRule(r, currentMixins);
+                        currentMixins = ret[1];
+                        currentStr += ret[0]; 
+                    }
+                    
                     break;
                 case "style":
                     r.id.unshift(selector);
-                    nestedStr += this.generateStyle(r, currentEnv);
+                    nestedStr += this.generateStyle(r, currentEnv, currentMixins);
                     break;
                 default:
                     break;
             }
-        })
+        }
 
         let ret = "";
 
@@ -79,9 +96,37 @@ class Generator {
         return `\n${this.indent()}${rule.id}: ${this.replaceVars(rule.value, env)};`
     }
 
-    generateAtRule(rule){
-        return `\n${this.indent()}@${rule.id} ${rule.value.join("")};`
+    generateAtRule(rule, env, mixins){
+        if(rule.type == "inline"){
+            return [`\n${this.indent()}@${rule.id} ${rule.value.join("")};`, mixins]
+        }else if(rule.type == "block"){
+
+            // @mixin
+
+            if(rule.id == "mixin"){
+                switch(rule.idx.length){
+                    case 0:
+                        throw new Error("Incorrect mixin syntax");
+                    case 1: // no args
+                        let name = rule.idx[0];
+                        mixins[name] = rule.body;
+                        break;
+                    case 2: // args
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            return ["", mixins]
+
+        }else{
+            //will never reach here
+            return ["", mixins];
+        }
+        
     }
+
 
     generateVar(rule, env){
         env[rule.id] = this.replaceVars(rule.value, env);
@@ -105,6 +150,14 @@ class Generator {
                 return d;
             }
         }).join(" ");
+    }
+
+    replaceMixins(id, mixins){
+        if(id in mixins){
+            return mixins[id];
+        }else{
+            throw new Error(`Mixin ${id} undefined`)
+        }
     }
 
     generateFile(filename) {

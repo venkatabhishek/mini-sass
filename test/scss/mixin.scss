@@ -1,18 +1,19 @@
+@mixin reset-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
 
+@mixin horizontal-list {
+  @include reset-list;
 
-.two {
-    
-    $v: 20px;
-    
-    .one{
-        
-        width: $v;
-    }
+  li {
+    display: inline-block;
+    margin-left: -2px;
+    margin-right: 2em;
+  }
+}
 
-    .three{
-        height: $v;
-    }
-
-    @import "test.css";
-
+nav ul {
+  @include horizontal-list;
 }

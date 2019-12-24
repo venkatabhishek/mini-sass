@@ -15,19 +15,19 @@ let types = {
         regex: /^\$/
     },
     quote: {
-        regex: /^\"/
+        regex: /^\".+\"/
     },
     squote: {
-        regex: /^\'/
-    },
-    hyphen: {
-        regex: /^\-/
+        regex: /^\'.+\'/
     },
     id: {
         regex: /^[\#\.-]?[_\.\#a-zA-Z]+[_a-zA-Z0-9-]*/
     },
     num: {
-        regex: /^[0-9]+(px|\%)?/
+        regex: /^-?[0-9]+(px|\%|em)?/
+    },
+    hyphen: {
+        regex: /^\-/
     },
     lbrace: {
         regex: /^\{/
@@ -35,11 +35,8 @@ let types = {
     rbrace: {
         regex: /^\}/
     },
-    lparen: {
-        regex: /^\(/
-    },
-    rparen: {
-        regex: /^\)/
+    paren: {
+        regex: /^\(.+\)/
     },
     lsquare: {
         regex: /^\[/

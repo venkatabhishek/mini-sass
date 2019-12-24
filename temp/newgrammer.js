@@ -38,3 +38,20 @@ let ast = [
         ]
     }
 ]
+
+// @mixin reset-list {
+//     margin: 0;
+//     padding: 0;
+//     list-style: none;
+//   }
+
+// div {
+//     @include reset-list;
+// }
+
+let ast2 = [
+    {
+        name: "at",
+        id: []
+    }
+]

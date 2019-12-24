@@ -1,7 +1,7 @@
 {
   "name": "mini-sass",
   "version": "1.0.0",
-  "description": "",
+  "description": "Light-weight scss compiler written in Javascript",
   "main": "lib/index.js",
   "scripts": {
     "test": "./node_modules/.bin/mocha --require @babel/register",

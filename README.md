@@ -117,3 +117,11 @@ Finally, the generator takes the AST and produces an output string based on vari
 * Interpolation
 * Partials and extended @import
 * Extend API to allow retrieval of AST and tokens 
+
+Contributions welcome
+
+### Tests
+
+This project uses mocha and chai with babel for test located in `test/index.js`. Run tests using the following command
+
+```npm run test```

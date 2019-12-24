@@ -160,10 +160,6 @@ class Generator {
         }
     }
 
-    generateFile(filename) {
-        
-    }
-
     indent(){
         return " ".repeat(4);
     }

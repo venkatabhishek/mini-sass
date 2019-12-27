@@ -4,7 +4,7 @@
 
 // ruleList ::= rule ruleList | e
 
-// rule ::=  var | @ rule | style
+// rule ::=  var | @ rule | style | comment
 
 // var ::= $ id : any ;
 
@@ -12,7 +12,7 @@
 
 // styleList ::= innerRule styleList | e
 
-// innerRule ::= var | @ rule | style | declaration
+// innerRule ::= var | @ rule | style | declaration | comment
 
 // declaration ::= id : any ;
 
@@ -66,6 +66,8 @@ class Parser {
             case "id":
                 let id = this.idList();
                 return this.style(id);
+            case "comment":
+                return this.comment();
             default:
                 throw new Error(`Line ${this.lookahead.line}: Column ${this.lookahead.column}: `
                                 + `Expected one of @, $, or ID`);
@@ -73,7 +75,6 @@ class Parser {
         }
     }
 
-    // MODIFY: CHECK FOR COLON - generic at rule - OR BRACE/PAREN - mixin/function
     at() {
         this.match("at");
         let id = this.lookahead.value;
@@ -132,6 +133,15 @@ class Parser {
 
     }
 
+    comment(){
+        let { name, value } = this.lookahead;
+        this.match("comment");
+        return {
+            name,
+            value
+        }
+    }
+
     styleList() {
         if(this.lookahead.name == "rbrace"){
             return [];
@@ -147,6 +157,8 @@ class Parser {
                 return this.at();
             case "cash":
                 return this.var();
+            case "comment":
+                return this.comment();
             case "id":
                 // style or declaration
                 let id = this.idList();

@@ -48,13 +48,19 @@ class Lexer {
 
                 if(matches){
 
-                    this.pos+=matches[0].length;
-                    this.column+=matches[0].length
+                    let matched = matches[0]
+
+                    if(tempToken.group){
+                        matched = matches[1];
+                    }
+
+                    this.pos+=matched.length;
+                    this.column+=matched.length
                     
                     // token 
                     return {
                         name: key,
-                        value: matches[0],
+                        value: matched,
                         line: this.line,
                         column: this.column
                     }

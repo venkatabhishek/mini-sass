@@ -15,10 +15,14 @@ let types = {
         regex: /^\$/
     },
     quote: {
-        regex: /^\".+\"/
+        regex: /^\".*\"/
     },
     squote: {
-        regex: /^\'.+\'/
+        regex: /^\'.*\'/
+    },
+    comment: {
+        regex: /^\/\*(.*)\*\//,
+        group: true
     },
     id: {
         regex: /^[\#\.-]?[_\.\#a-zA-Z]+[_a-zA-Z0-9-]*/
@@ -36,7 +40,8 @@ let types = {
         regex: /^\}/
     },
     paren: {
-        regex: /^\(.+\)/
+        regex: /^\((.*)\)/,
+        group: true
     },
     lsquare: {
         regex: /^\[/

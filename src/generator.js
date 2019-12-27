@@ -17,6 +17,8 @@ class Generator {
                     case "var":
                         env = this.generateVar(rule, env);
                         return "";
+                    case "comment":
+                        return this.generateComment(rule);
                     case "style":
                         return this.generateStyle(rule, env, mixins);
                     case "at":
@@ -52,6 +54,8 @@ class Generator {
                 case "var":
                     currentEnv = this.generateVar(r, currentEnv);
                     break;
+                case "comment":
+                    currentStr += this.generateComment(r);
                 case "decl":
                     currentStr += this.generateDeclaration(r, currentEnv);
                     break;
@@ -94,6 +98,10 @@ class Generator {
 
     generateDeclaration(rule, env) {
         return `\n${this.indent()}${rule.id}: ${this.replaceVars(rule.value, env)};`
+    }
+
+    generateComment(rule){
+        return `/*${rule.value}*/`
     }
 
     generateAtRule(rule, env, mixins){

@@ -50,12 +50,12 @@ class Lexer {
 
                     let matched = matches[0]
 
+                    this.pos+=matched.length;
+                    this.column+=matched.length
+
                     if(tempToken.group){
                         matched = matches[1];
                     }
-
-                    this.pos+=matched.length;
-                    this.column+=matched.length
                     
                     // token 
                     return {

@@ -22,9 +22,9 @@ class Generator {
                     case "style":
                         return this.generateStyle(rule, env, mixins);
                     case "at":
-                        let ret = this.generateAtRule(rule, env, mixins);
+                        let ret = this.generateAtRule(rule, env, mixins, "");
                         mixins = ret[1];
-                        return ret[0];
+                        return ret[0].outer;
                     default:
                         break;
                 }
@@ -36,21 +36,21 @@ class Generator {
         return output;
     }
 
-    generateStyle(rule, env, mixins){
+    generateStyle(rule, env, mixins) {
         let indent = this.indent();
-        let currentEnv = {...env};
-        let currentMixins = {...mixins};
+        let currentEnv = { ...env };
+        let currentMixins = { ...mixins };
         let currentDecls = [...rule.decls];
 
         let selector = rule.id.join(" ");
-        
+
         let currentStr = "";
         let nestedStr = "";
 
 
-        for(let i = 0; i < currentDecls.length;i++){
+        for (let i = 0; i < currentDecls.length; i++) {
             let r = currentDecls[i];
-            switch(r.name){
+            switch (r.name) {
                 case "var":
                     currentEnv = this.generateVar(r, currentEnv);
                     break;
@@ -60,16 +60,10 @@ class Generator {
                     currentStr += this.generateDeclaration(r, currentEnv);
                     break;
                 case "at":
-                    // include
-                    if(r.id == "include"){
-                        let body = this.replaceMixins(r.value[0], currentMixins);
-                        currentDecls.splice(i+1, 0, ...body);
-                    }else{
-                        let ret = this.generateAtRule(r, currentMixins);
-                        currentMixins = ret[1];
-                        currentStr += ret[0]; 
-                    }
-                    
+                    let ret = this.generateAtRule(r, currentEnv, currentMixins, selector);
+                    currentMixins = ret[1];
+                    currentStr += ret[0].inner;
+                    nestedStr += ret[0].outer;
                     break;
                 case "style":
                     r.id.unshift(selector);
@@ -82,13 +76,13 @@ class Generator {
 
         let ret = "";
 
-        if(currentStr.length != 0){
+        if (currentStr.length != 0) {
             ret += `${selector} {` +
-            `${currentStr}` +
-            `\n}\n\n`
+                `${currentStr}` +
+                `\n}\n\n`
         }
 
-        if(nestedStr.length != 0){
+        if (nestedStr.length != 0) {
             ret += nestedStr;
         }
 
@@ -100,75 +94,135 @@ class Generator {
         return `\n${this.indent()}${rule.id}: ${this.replaceVars(rule.value, env)};`
     }
 
-    generateComment(rule){
+    generateComment(rule) {
         return `/*${rule.value}*/`
     }
 
-    generateAtRule(rule, env, mixins){
-        if(rule.type == "inline"){
-            return [`\n${this.indent()}@${rule.id} ${rule.value.join("")};`, mixins]
-        }else if(rule.type == "block"){
+    generateAtRule(rule, env, mixins, parent) {
+        if (rule.type == "inline") {
+
+            if (rule.id == "include") {
+
+                let mix = this.replaceMixin(rule.value[0], mixins);
+
+                let currentMixins = { ...mixins }, currentEnv = { ...env };
+                let currentStr = "", nestedStr = "";
+
+                // mixin args
+
+                currentEnv = this.replaceArgs(currentEnv, mix.args, rule.args);
+
+
+                mix.body.forEach(statement => {
+                    switch (statement.name) {
+                        case "var":
+                            currentEnv = this.generateVar(statement, currentEnv);
+                            break;
+                        case "comment":
+                            currentStr += this.generateComment(statement);
+                        case "decl":
+                            currentStr += this.generateDeclaration(statement, currentEnv);
+                            break;
+                        case "at":
+                            let ret = this.generateAtRule(statement, currentEnv, currentMixins, parent);
+                            currentMixins = ret[1];
+                            currentStr += ret[0].inner;
+                            nestedStr += ret[0].outer;
+                            break;
+                        case "style":
+                            statement.id.unshift(parent);
+                            nestedStr += this.generateStyle(statement, currentEnv, currentMixins);
+                            break;
+                        default:
+                            break;
+                    }
+                })
+
+                return [{ inner: currentStr, outer: nestedStr }, mixins];
+
+            }
+
+
+            return [
+                {
+                    inner: `\n${this.indent()}@${rule.id} ${rule.value.join("")};`,
+                    outer: ""
+                },
+                mixins
+            ]
+        } else if (rule.type == "block") {
 
             // @mixin
 
-            if(rule.id == "mixin"){
-                switch(rule.idx.length){
-                    case 0:
-                        throw new Error("Incorrect mixin syntax");
-                    case 1: // no args
-                        let name = rule.idx[0];
-                        mixins[name] = rule.body;
-                        break;
-                    case 2: // args
-                        break;
-                    default:
-                        break;
-                }
+            if (rule.id == "mixin") {
+                let name = rule.idx[0];
+                mixins[name] = {
+                    body: rule.body,
+                    args: rule.args
+                };
             }
 
-            return ["", mixins]
+            return [{ inner: "", outer: "" }, mixins]
 
-        }else{
+        } else {
             //will never reach here
-            return ["", mixins];
+            return [{ inner: "", outer: "" }, mixins];
         }
-        
+
     }
 
 
-    generateVar(rule, env){
+    generateVar(rule, env) {
         env[rule.id] = this.replaceVars(rule.value, env);
         return env;
     }
 
     // replace vars with value in declaration
-    replaceVars(lst, env){
+    replaceVars(lst, env) {
         return lst.map((d) => {
-            if(d.startsWith("$")){
+            if (d.startsWith("$")) {
 
                 let id = d.substring(1);
 
-                if(id in env){
+                if (id in env) {
                     return env[id];
-                }else{
+                } else {
                     throw new Error(`Variable "${id}" undefined`)
                 }
 
-            }else{
+            } else {
                 return d;
             }
         }).join(" ");
     }
 
-    replaceMixins(id, mixins){
-        if(id in mixins){
+    replaceMixin(id, mixins) {
+        if (id in mixins) {
             return mixins[id];
-        }else{
+        } else {
             throw new Error(`Mixin ${id} undefined`)
         }
     }
 
-    indent(){
+    replaceArgs(env, args, rargs){
+        args.forEach((arg, index) => {
+            if(arg.startsWith("$")){
+                arg = arg.substring(1);
+            }
+
+            if(rargs[index]){
+                env[arg] = rargs[index];
+            }else{
+                throw new Error(`Missing argument $${arg}`)
+            }
+            
+
+        })
+
+        return env;
+    }
+
+    indent() {
         return " ".repeat(4);
     }
 

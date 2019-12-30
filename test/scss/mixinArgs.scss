@@ -1,0 +1,11 @@
+@mixin rtl($ltr-value, $rtl-value) {
+  float: $ltr-value;
+
+  div{
+    float: $rtl-value;
+  }
+}
+
+.sidebar {
+  @include rtl(left, right);
+}

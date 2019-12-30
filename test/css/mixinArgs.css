@@ -1,0 +1,6 @@
+.sidebar {
+    float: left;
+  }
+  .sidebar div {
+    float: right;
+  }

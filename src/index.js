@@ -1,7 +1,5 @@
 // API
 
-const fs = require('fs');
-
 import Lexer from './lexer';
 import Parser from './parser';
 import Generator from './generator';

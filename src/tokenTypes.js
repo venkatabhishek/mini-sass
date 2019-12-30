@@ -25,7 +25,7 @@ let types = {
         group: true
     },
     id: {
-        regex: /^[\#\.-]?[_\.\#a-zA-Z]+[_a-zA-Z0-9-]*/
+        regex: /^\[?[\#\.-]?[_\.\#a-zA-Z]+[_a-zA-Z0-9-\=]*\]?/
     },
     num: {
         regex: /^-?[0-9]+(px|\%|em)?/
@@ -42,14 +42,7 @@ let types = {
     paren: {
         regex: /^\((.*)\)/,
         group: true
-    },
-    lsquare: {
-        regex: /^\[/
-    },
-    rsquare: {
-        regex: /^\]/
     }
-
 }
 
 export default types;

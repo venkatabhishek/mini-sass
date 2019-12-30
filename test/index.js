@@ -77,7 +77,8 @@ describe("Parser", () => {
                 name: "at",
                 type: "inline",
                 id: "import",
-                value: ['"test.css"']
+                value: ['"test.css"'],
+                args: []
             }])
         })
 
@@ -141,6 +142,10 @@ describe("Generator", () => {
     describe("Feature: Mixins", () => {
         it("Replaces without args", () => {
             compareCSS("mixin");
+        })
+
+        it("Replaces with args", () => {
+            compareCSS("mixinArgs");
         })
     })
 })

@@ -79,7 +79,17 @@ class Parser {
         this.match("at");
         let id = this.lookahead.value;
         this.match("id");
-        let v = this.joinVars(this.any());
+        let v = this.any();
+
+        // args
+        let args = []
+
+        if(v[v.length-1].name == "paren"){
+            args = v.pop().value.replace(/\s/g, '').split(",");
+        }
+
+        v = this.joinVars(this.joinAny(v));
+
         let type = this.lookahead.name;
         if(type == "semicolon"){
             this.match("semicolon");
@@ -88,7 +98,8 @@ class Parser {
                 name: "at",
                 type: "inline",
                 id,
-                value: v
+                value: v,
+                args
             }
         }else if(type == "lbrace"){
             this.match("lbrace");
@@ -100,7 +111,8 @@ class Parser {
                 type: "block",
                 id,
                 idx: v,
-                body 
+                body,
+                args
             }
         }
         
@@ -111,7 +123,7 @@ class Parser {
         let id = this.lookahead.value;
         this.match("id");
         this.match("colon");
-        let value = this.joinVars(this.any());
+        let value = this.joinVars(this.joinAny(this.any()));
         this.match("semicolon");
         return {
             name: "var",
@@ -179,7 +191,7 @@ class Parser {
 
     declaration(id){
         this.match("colon");
-        let value = this.joinVars(this.any());
+        let value = this.joinVars(this.joinAny(this.any()));
         this.match("semicolon");
         return {
             name: "decl",
@@ -208,6 +220,7 @@ class Parser {
     any(){
 
         let valid = ["id", "num", "paren", "quote", "squote", "comma", "hyphen", "cash"]
+ 
 
         if(valid.indexOf(this.lookahead.name) != -1){
             
@@ -223,11 +236,18 @@ class Parser {
                 throw new Error(`Expected Identifier ${v.line}:${v.column}`)
             }
             
-            return [v.value].concat(rest);
+            return [v].concat(rest);
         }else{
             return [];
         }
 
+    }
+
+    joinAny(lst) {
+        return lst.reduce((a, x) => {
+            a.push(x.value);
+            return a;
+        }, [])        
     }
 
     // join ['$', 'varname'] => ['$varname']

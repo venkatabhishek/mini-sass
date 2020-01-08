@@ -1,0 +1,8 @@
+@mixin rtl($ltr-value, $rtl-value: 20px) {
+    float: $ltr-value;
+    width: $rtl-value;
+  }
+  
+  .sidebar {
+    @include rtl(left);
+  }

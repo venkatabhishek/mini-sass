@@ -85,7 +85,8 @@ class Parser {
         let args = []
 
         if(v[v.length-1].name == "paren"){
-            args = v.pop().value.replace(/\s/g, '').split(",");
+            args = v.pop().value.replace(/\s/g, '').split(",")
+            .map(s => s.split(":").map(s => s.trim()));
         }
 
         v = this.joinVars(this.joinAny(v));
@@ -99,7 +100,7 @@ class Parser {
                 type: "inline",
                 id,
                 value: v,
-                args
+                args: args.flat()
             }
         }else if(type == "lbrace"){
             this.match("lbrace");

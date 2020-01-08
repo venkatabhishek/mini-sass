@@ -206,12 +206,14 @@ class Generator {
 
     replaceArgs(env, args, rargs){
         args.forEach((arg, index) => {
-            if(arg.startsWith("$")){
-                arg = arg.substring(1);
+            if(arg[0].startsWith("$")){
+                arg[0] = arg[0].substring(1);
             }
 
             if(rargs[index]){
-                env[arg] = rargs[index];
+                env[arg[0]] = rargs[index];
+            }else if(arg.length == 2){
+                env[arg[0]] = arg[1];
             }else{
                 throw new Error(`Missing argument $${arg}`)
             }

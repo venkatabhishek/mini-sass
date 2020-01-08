@@ -147,6 +147,10 @@ describe("Generator", () => {
         it("Replaces with args", () => {
             compareCSS("mixinArgs");
         })
+
+        it("Replaces optional args", () => {
+            compareCSS("optionalArgs");
+        })
     })
 })
 

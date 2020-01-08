@@ -1,6 +1,6 @@
 {
   "name": "mini-sass",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Light-weight scss compiler written in Javascript",
   "main": "lib/index.js",
   "scripts": {
